@@ -7,7 +7,6 @@
 
 from __future__ import print_function
 import numpy as np
-from astropy.stats import median_absolute_deviation
 from scipy.integrate import quad
 import peakutils
 import tsfresh.feature_extraction.feature_calculators as ts
@@ -426,17 +425,19 @@ def below5(mag):
 
 def medianAbsDev(mag):
     """"A measure of the mean average distance between each magnitude value
-        and the mean magnitude.
+        and the mean magnitude. https://en.wikipedia.org/wiki/Median_absolute_deviation 
         
         :rtype: float
         """
     
-    medianAbsDev = median_absolute_deviation(mag)
+    array = np.ma.array(mag).compressed() 
+    med = np.median(array)
+    medianAbsDev = np.median(np.abs(array - med))
     
     return medianAbsDev
 
 def root_mean_squared(mag):
-    """A measure of the root mean square deviation, weighted by the errors.
+    """A measure of the root mean square deviation.
         
         :rtype: float
     """
@@ -508,7 +509,8 @@ def peak_detection(mag):
 # Please see: http://tsfresh.readthedocs.io/en/latest/
 
 def abs_energy(mag):
-    """Returns the absolute energy of the time series, summed over the squared values.
+    """Returns the absolute energy of the time series, defined to be the sum over the squared
+    values of the time-series.
 
         rtype: float
     """
@@ -524,7 +526,7 @@ def abs_sum_changes(mag):
     return val
 
 def auto_corr(mag):
-    """Autocorrelation with specified lag of len - 1
+    """Similarity between observations as a function of a time lag between them.
 
     rtype:float
     """
