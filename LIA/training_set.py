@@ -10,10 +10,10 @@ from astropy.io import fits
 from sklearn import decomposition
 import os
 
-from LIA.lib import simulate
-from LIA.lib import noise_models
-from LIA.lib import quality_check
-from LIA.lib import extract_features
+from LIA import simulate
+from LIA import noise_models
+from LIA import quality_check
+from LIA import extract_features
     
 def create(timestamps, min_mag=14, max_mag=21, noise=None, n_class=500):
     """Creates a training dataset using adaptive cadence.

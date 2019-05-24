@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import decomposition
 from warnings import warn
-from LIA.lib import extract_features
+from LIA import extract_features
 
 def predict(mag, magerr, rf_model, pca_model):
     """This function uses machine learning to classify any given lightcurve as either
