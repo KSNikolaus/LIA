@@ -7,6 +7,7 @@ Created on Thu Jun 28 20:30:11 2018
 from __future__ import division
 import numpy as np
 from gatspy import datasets, periodic
+from math import pi
 import os
 
 
@@ -48,7 +49,7 @@ def microlensing(timestamps, baseline):
     t_e = np.random.normal(30, 10.0)
     blend_ratio = np.random.uniform(0,10)
 
-    u_t = np.sqrt(u_0**2 + ((timestamps - t_0) / t_e)**2)
+    u_t = np.sqrt(np.array(u_0**2) + ((np.array(timestamps) - np.array(t_0)) / np.array(t_e))**2)
     magnification = (u_t**2 + 2.) / (u_t * np.sqrt(u_t**2 + 4.))
  
     flux = 10**((mag) / -2.5)
@@ -145,7 +146,76 @@ def cv(timestamps, baseline):
     lc = lc+baseline 
     return np.array(lc), np.array(start_times), np.array(outburst_end_times), np.array(end_rise_times), np.array(end_high_times)
 
-def variable(timestamps, baseline, bailey=None):
+
+    
+def parametersRR0():            #McGill et al. (2018): Microlens mass determination for Gaia’s predicted photometric events
+    a1=  0.31932222222222223
+    ratio12 = 0.4231184105222867 
+    ratio13 = 0.3079439089738683 
+    ratio14 = 0.19454399944326523
+    f1 =  3.9621766666666667
+    f2 =  8.201326666666667
+    f3 =  6.259693777777778
+
+    return a1, ratio12, ratio13, ratio14, f1, f2, f3
+
+
+def parametersRR1():            #McGill et al. (2018)
+    a1 =  0.24711999999999998
+    ratio12 = 0.1740045322110716 
+    ratio13 = 0.08066256609474477 
+    ratio14 = 0.033964605589727
+    f1 =  4.597792666666666
+    f2 =  2.881016
+    f3 =  1.9828297333333336
+    
+    return a1, ratio12, ratio13, ratio14, f1, f2, f3
+
+
+def setup_parameters(timestamps, bailey=None):          #setup of random parameters based on physical parameters
+
+    time = np.array(timestamps)
+    if bailey is None:
+        bailey = np.random.randint(1,4)
+
+    if bailey < 0 or bailey > 3:
+        raise RuntimeError("Bailey out of range, must be between 1 and 3.")
+
+    a1, ratio12, ratio13, ratio14, f1, f2, f3  = parametersRR1()
+    if bailey == 1:
+        period = np.random.normal(0.6, 0.15)
+        a1, ratio12, ratio13, ratio14, f1, f2, f3  = parametersRR0()
+
+    elif bailey == 2:
+        period = np.random.normal(0.33, 0.1)
+
+    elif bailey == 3:
+        period = np.random.lognormal(0., 0.2)
+        period = 10**period
+    
+    s = 20
+    period=np.abs(period)  
+    n1 = np.random.normal(a1, 2*a1/s)
+    ampl_k = [n1, np.random.normal(n1*ratio12, n1*ratio12/s), np.random.normal(n1*ratio13, n1*ratio13/s), np.random.normal(n1*ratio14, n1*ratio14/s)]
+    phase_k = [0, np.random.normal(f1, f1/s), np.random.normal(f2, f2/s), np.random.normal(f3, f3/s)]
+
+    return time, ampl_k, phase_k, period
+
+
+def variable(timestamps, baseline, bailey=None):       #theory, McGill et al. (2018)
+    
+    time, ampl_k, phase_k, period = setup_parameters(timestamps, bailey)
+    lightcurve = np.array(baseline)
+    for idx in range(len(ampl_k)):
+        lightcurve = lightcurve - ampl_k[idx] * np.cos(((2*pi*(idx+1))/period)*time+phase_k[idx])
+
+    amplitude = max(lightcurve)-min(lightcurve)
+    
+    return lightcurve, amplitude, period 
+
+
+
+def old_variable(timestamps, baseline, bailey=None):
     """Simulates a variable source. 
     This simulation is done using the gatspy module provided by AstroML. 
     This module implements a template-based model using RR Lyrae

@@ -6,7 +6,7 @@ Created on Thu Jun 28 20:30:11 2018
 """
 from __future__ import division
 import numpy as np
-from LIA import simulate
+from LIA.simulate import constant
    
 def test_microlensing(timestamps, microlensing_mag, magerr, baseline, u_0, t_0, t_e, blend_ratio):
     """Test to ensure proper microlensing signal.
@@ -38,9 +38,9 @@ def test_microlensing(timestamps, microlensing_mag, magerr, baseline, u_0, t_0, 
     condition : boolean
         Returns True if microlensing passes the quality test. 
     """
-    mag = simulate.constant(timestamps, baseline)
+    mag = constant(timestamps, baseline)
     condition = False
-    signal_indices = np.argwhere((timestamps >= (t_0 - t_e)) & (timestamps <= (t_0 + t_e))) 
+    signal_indices = np.argwhere((np.array(timestamps) >= np.array(t_0 - t_e)) & (np.array(timestamps) <= (t_0 + t_e))) 
     if len(signal_indices) >= 7:
         mean1 = np.mean(mag[signal_indices])
         mean2 = np.mean(microlensing_mag[signal_indices])
